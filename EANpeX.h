@@ -155,32 +155,57 @@ Threshold data with certain threshold value.
 void threshold(int* data, int n, int thresholdValue);
 
 /*
-
+Threshold data with given threshold type.
+	thresholdType: EAN_THRESHOLD_CONST = 0, EAN_THRESHOLD_AVERAGE = 1;
+	thresholdValue is available only when thresholdType = EAN_THRESHOLD_CONST.
 */
 void threshold(int* data, int n, int thresholdType, int thresholdValue);
 
 /*
-
+Calculate the module number of an EAN Barcode.
+	isContainCheck: Whether input EAN Code contains check code.
+	genFirstNum: Whether the first number will be generated.
+		If input false, the first number will be considered as country code and will not be counted.
+		If input true, the first number will be considered as a normal data number and counted.
 */
 int calcEANModules(const char* ean, bool isContainCheck = true, bool genFirstNum = false);
 
 /*
 Get length of output EAN barcode data.
+	ean: EAN Code string.
+	moduleWidth: Width of each basic module.
+	isContainCheck: Whether input EAN Code contains check code.
+	genFirstNum: Whether the first number will be generated.
+		If input false, the first number will be considered as country code with no data generated.
+		If input true, the first number will be considered as a normal data number and generated.
 */
 int genEANData(const char* ean, int moduleWidth, bool isContainCheck = true, bool genFirstNum = false);
 
 /*
 Generate EAN barcode light intensity data.
+	ean: EAN Code string.
+	moduleWidth: Width of each basic module.
+	midIndex: Index of middle separator. E.g. Input 6 means the middle separator will be put after the 6th number.
+	OutputData: Output data array.
+	OutputLength: Length of output data array.
+	separatorIndex: Array sized 6 contains left and right index of the start/middle/end separator.
+		separatorIndex[0] = left index of start separator;  separatorIndex[1] = right index of start separator.
+		separatorIndex[2] = left index of middle separator; separatorIndex[3] = right index of middle separator.
+		separatorIndex[4] = left index of end separator;    separatorIndex[5] = right index of end separator.
+	isContainCheck: Whether input EAN Code contains check code.
+	genFirstNum: Whether the first number will be generated.
+		If input false, the first number will be considered as country code with no data generated.
+		If input true, the first number will be considered as a normal data number and generated.
 */
-int genEANData(const char* ean, int moduleWidth, int midIndex, int* OutputData, int OutputLength, int* separatorLocIndex = nullptr, bool isContainCheck = true, bool genFirstNum = false);
+int genEANData(const char* ean, int moduleWidth, int midIndex, int* OutputData, int OutputLength, int* separatorIndex = nullptr, bool isContainCheck = true, bool genFirstNum = false);
 
 /*
-
+Get length of EAN-13 Barcode output data.
 */
 inline int genEAN13Data(int moduleWidth);
 
 /*
-
+Generate EAN-13 Barcode light intensity data.
 */
 int genEAN13Data(const char* ean13, int moduleWidth, int* OutputData, int OutputLength, int* separatorIndex = nullptr, bool isContainCheck = true);
 

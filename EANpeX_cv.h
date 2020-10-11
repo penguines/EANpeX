@@ -44,7 +44,16 @@ Rebuild EAN Code image.
 void rebuildEAN(cv::Mat& OutputArray, int OutputWidth, int OutputHeight, int* thresholdedData, int n);
 
 /*
-
+Generate EAN Barcode image.
+	width: Width of EAN Barcode Image.
+	height: Height of EAN Barcode Image.
+	ean: EAN Code string.
+	midIndex: Index of middle separator. E.g. Input 6 means the middle separator will be put after the 6th number.
+	isContainCheck: Whether input EAN Code contains check code.
+	genFirstNum: Whether the first number will be generated.
+		If input false, the first number will be considered as country code with no data generated and showed before the start separator.
+		If input true, the first number will be considered as a normal data number and showed after the start separator.
+	showNumbers: Whether the EAN numbers will be painted.
 */
 void genEANBarcode(cv::Mat& OutputArray, 
 				   int width, 

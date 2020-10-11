@@ -438,6 +438,12 @@ void genEANBarcode(cv::Mat& OutputArray, int width, int height, const char* ean,
 	}
 }
 
+void genEAN13Barcode(cv::Mat& OutputArray, int width, int height, const char* ean13, bool isContainCheck, bool showNumbers){
+	int eanLength = strlen(ean13);
+	CV_Assert((isContainCheck == false && eanLength == 12) || (isContainCheck == true && eanLength == 13));
+	genEANBarcode(OutputArray, width, height, ean13, 6, isContainCheck, false, showNumbers);
+}
+
 int angleAdd(int angle1, int angle2) {
 	int result = angle1 + angle2;
 	while (result >= 180)result -= 180;

@@ -65,6 +65,21 @@ void genEANBarcode(cv::Mat& OutputArray,
 				   bool showNumbers = true);
 
 /*
+Generate EAN-13 Barcode image.
+	width: Width of EAN Barcode Image.
+	height: Height of EAN Barcode Image.
+	ean13: EAN-13 Code string, length 12(isContainCheck == false) or 13(isContainCheck == true).
+	isContainCheck: Whether input EAN Code contains check code.
+	showNumbers: Whether the EAN numbers will be painted.
+*/
+void genEAN13Barcode(cv::Mat& OutputArray, 
+					 int width,
+					 int height,
+					 const char* ean13,
+					 bool isContainCheck = true,
+					 bool showNumbers = true);
+
+/*
 Add angle1 and angle2.
 */
 int angleAdd(int angle1, int angle2);

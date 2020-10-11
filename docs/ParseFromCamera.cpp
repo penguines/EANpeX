@@ -1,6 +1,5 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include "EANpeX.h"
 #include "EANpeX_cv.h"
 
 int main() {

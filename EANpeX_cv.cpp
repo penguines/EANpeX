@@ -243,7 +243,6 @@ int findEANArea_Hough(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedLi
 int findEANArea_Contours(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedContours){
 	CV_Assert(InputMat.channels() == 3);
 	cv::Mat imgTmp;
-	std::vector<cv::Vec4i> hough_lines;
 
 	//图像处理部分
 	cv::medianBlur(InputMat, imgTmp, 5);

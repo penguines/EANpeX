@@ -6,6 +6,7 @@ std::vector<std::string> linesFromFile(std::string path);
 
 int main() {
 	std::string ean;
+	//Read light intensity data file.
 	std::vector<std::string> strdata = linesFromFile("LightIntensity.txt");
 	int dataSize = strdata.size() - 1;
 	int thresholdValue = 128;

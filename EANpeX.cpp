@@ -15,6 +15,7 @@ int parseEAN_BIN(int* thresholdedData, int n, std::string& eanLeft, std::string&
 	int wbflag = 1, start, mid_r, mid_l, end;
 	char out[120] = { 0 };
 	findEANSign(thresholdedData, n, start, mid_r, end, 0.5, moduleWidth);
+
 	if (start != -1 && mid_r != -1 && end != -1) {
 		index = start;
 		mid_l = matchEANBlocks(thresholdedData, n, 5, mid_r, 1, moduleWidth, 0.5, -1);
@@ -108,7 +109,7 @@ int parseEAN_DEC(int* thresholdedData, int n, int frontCode, std::string& ean) {
 		}
 		
 		if (frontCode >= 0) {
-			if (checkEAN(num, index_out))return -3;
+			if (!checkEAN(num, index_out))return -3;
 		}
 		else {
 			bool isMatched = false;
@@ -237,7 +238,7 @@ int calcCheckCode(int* eanWithoutChk, int n){
 		sumOdd += eanWithoutChk[i - 1];
 		sumEven += eanWithoutChk[i];
 	}
-	return (10 - ((sumEven * 3 + sumOdd) % 10));
+	return ((10 - ((sumEven * 3 + sumOdd) % 10)) % 10);
 }
 
 int calcCheckCode(const char* eanWithoutChk, int n){

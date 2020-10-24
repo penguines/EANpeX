@@ -209,5 +209,7 @@ Generate EAN-13 Barcode light intensity data.
 */
 int genEAN13Data(const char* ean13, int moduleWidth, int* OutputData, int OutputLength, int* separatorIndex = nullptr, bool isContainCheck = true);
 
+//int genEAN8Data(const char* ean8, int moduleWidth, int* OutputData, int OutputLength, int* separatorIndex = nullptr, bool isContainCheck = true);
+
 #endif
 

@@ -15,12 +15,13 @@ EANpeX_cv.h/EANpeX_cv.cpp :
   
   Based on OpenCV. Used to fetch EAN barcode area from images and parse EAN barcode image and generate EAN Barcode image. OpenCV required.
 
-  对于EAN条码识别提供基于霍夫线变换和轮廓提取的两种方法，前者通用性更好，能够在较为复杂的环境下进行识别。
+  对于EAN条码区域在图像中的检测提供基于霍夫线变换和轮廓提取的两种方法，前者通用性更好，能够在较为复杂的环境下进行识别。
   
   示例：
-  1-
+  
+  1.
   ![1_hf](https://user-images.githubusercontent.com/47978720/150717345-7ba6d8fd-a29e-4eea-8a2d-22a72d0c62f1.jpg)
 
-  2-
+  2.
   ![result_img](https://user-images.githubusercontent.com/47978720/150717641-372f2b1c-2115-4b6f-bafd-2d4c3e377bf4.jpg)
   ![result_ean](https://user-images.githubusercontent.com/47978720/150717650-9316f0a5-10e5-47c5-a758-65d1169dc5df.jpg)

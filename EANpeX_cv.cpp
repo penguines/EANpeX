@@ -22,20 +22,24 @@ int parseEANMat_DEC(cv::Mat& InputMat, std::string& ean, int EANLength, int fron
 	cv::Mat grayLine;
 	for (int i = 0; i < grayMat.rows; i++) {
 		pixSum = 0;
-		grayLine = grayMat.rowRange(i, i + 1);
 
 		switch (thresholdType) {
 		case EAN_THRESHOLD_AVERAGE:
+			cv::equalizeHist(grayMat, grayMat);
+			grayLine = grayMat.rowRange(i, i + 1);
 			for (int j = 0; j < grayLine.cols; j++) {
 				line[j] = grayLine.at<uchar>(0, j);
 				pixSum += line[j];
 			}
 			threshold = pixSum / (float)grayLine.cols;
+			std::cout << threshold << std::endl;
 			for (int j = 0; j < grayLine.cols; j++) {
 				line[j] = line[j] >= threshold ? 1 : 0;
 			}
 			break;
+
 		case EAN_THRESHOLD_CONST:
+			grayLine = grayMat.rowRange(i, i + 1);
 			for (int j = 0; j < grayLine.cols; j++) {
 				line[j] = grayLine.at<uchar>(0, j);
 				line[j] = line[j] >= threshold ? 1 : 0;
@@ -57,7 +61,7 @@ int findEANArea_Hough(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedLi
 	cv::medianBlur(InputMat, imgTmp, 5);
 	cv::cvtColor(imgTmp, imgTmp, CV_BGR2GRAY);
 	cv::Canny(imgTmp, imgTmp, 50, 150);
-	cv::HoughLinesP(imgTmp, hough_lines, 1, CV_PI / 180., 100, 100, 50);
+	cv::HoughLinesP(imgTmp, hough_lines, 1, CV_PI / 180., 100, 100, 8);
 
 	//霍夫变化结果处理
 	//找到数量最多倾角值相的同直线对应的角度
@@ -90,7 +94,7 @@ int findEANArea_Hough(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedLi
 
 	//对指定倾角的直线聚集程度进行判断
 	//dis: 坐标系旋转后，同组直线之间最远距离(pix)
-	int dis = 50;
+	int dis = 70;
 	float x_max = 0, x_min = 0;
 	float x01, x02, y01, y02;
 	float x1, x2;
@@ -137,7 +141,14 @@ int findEANArea_Hough(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedLi
 		pts.push_back(cv::Point2f(x1, y1));
 
 		std::vector<int>::iterator it;
-		for (it = angleIndex[maxNumAngle].begin(); it != angleIndex[maxNumAngle].end();) {
+		std::vector<double> yMid;
+		std::vector<bool> isInGroup;
+		std::vector<cv::Vec4f> transCord;
+		double ySum = 0, yAve = 0, ySigma = 0;
+		int yCount = 0;
+
+		//计算线段中点纵坐标平均值及方差，根据3sigma法则去除过长的线段
+		for (it = angleIndex[maxNumAngle].begin(); it != angleIndex[maxNumAngle].end(); it++) {
 			x01 = hough_lines[*it][0];
 			x02 = hough_lines[*it][2];
 			y01 = hough_lines[*it][1];
@@ -149,14 +160,12 @@ int findEANArea_Hough(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedLi
 			if (x2 > x1)std::swap(x1, x2);
 			if (y2 > y1)std::swap(y1, y2);
 			if ((x1 <= dis + x_max && x1 >= x_min - dis) || (x2 <= dis + x_max && x2 >= x_min - dis)) {
-				if (y1 > y_max) {
-					y_max = y1;
-					pts[3] = cv::Point2f(x1, y1);
-				}
-				if (y2 < y_min) {
-					y_min = y2;
-					pts[2] = cv::Point2f(x2, y2);
-				}
+				cv::Vec4f cord(x1, y1, x2, y2);
+				transCord.push_back(cord);
+				isInGroup.push_back(true);
+				yMid.push_back((y1 + y2) / 2.);
+				ySum += yMid[yCount];
+				yCount++;
 				if (x1 > x_max) {
 					x_max = x1;
 					pts[1] = cv::Point2f(x1, y1);
@@ -165,13 +174,54 @@ int findEANArea_Hough(cv::Mat& InputMat, cv::Mat& OutputMat, bool showDetectedLi
 					x_min = x2;
 					pts[0] = cv::Point2f(x2, y2);
 				}
-				group.push_back(*it);
-				it = angleIndex[maxNumAngle].erase(it);
+			}
+			else {
+				isInGroup.push_back(false);
+			}
+		}
+		yAve = ySum / yCount;
+		ySum = 0;
+		for (auto it = yMid.begin(); it != yMid.end(); it++) {
+			ySum += ((*it) - yAve) * ((*it) - yAve);
+		}
+		ySigma = sqrt(ySum / (yCount - 1));
+		yCount = 0;
+		int j = 0;
+		for (it = angleIndex[maxNumAngle].begin(); it != angleIndex[maxNumAngle].end();) {
+			if (isInGroup[j] == true) {
+				if (fabs(yMid[yCount] - yAve) <= 3 * ySigma) {
+					x1 = transCord[yCount][0];
+					y1 = transCord[yCount][1];
+					x2 = transCord[yCount][2];
+					y2 = transCord[yCount][3];
+					if (y1 > y_max) {
+						y_max = y1;
+						pts[3] = cv::Point2f(x1, y1);
+					}
+					if (y2 < y_min) {
+						y_min = y2;
+						pts[2] = cv::Point2f(x2, y2);
+					}
+					if (x1 == x_max) {
+						pts[1] = cv::Point2f(x1, y1);
+					}
+					if (x2 == x_min) {
+						pts[0] = cv::Point2f(x2, y2);
+					}
+					group.push_back(*it);
+					it = angleIndex[maxNumAngle].erase(it);
+				}
+				else {
+					it = angleIndex[maxNumAngle].erase(it);
+				}
+				yCount++;
 			}
 			else {
 				it++;
 			}
+			j++;
 		}
+
 		borderPt.push_back(pts);
 		lineGroups.push_back(group);
 		pts.clear();
@@ -453,10 +503,19 @@ int angleAdd(int angle1, int angle2) {
 
 void cvContrastBright(cv::Mat& srcArray, cv::Mat& dstArray, int contrastValue, int brightValue) {
 	cv::Mat dst = cv::Mat::zeros(srcArray.size(), srcArray.type());
-	for (int y = 0; y < srcArray.rows; y++) {
-		for (int x = 0; x < srcArray.cols; x++) {
-			for (int i = 0; i < 3; i++) {
-				dst.at<cv::Vec3b>(y, x)[i] = cv::saturate_cast<uchar>((contrastValue * 0.01) * (srcArray.at<cv::Vec3b>(y, x)[i]) + brightValue);
+	if (srcArray.channels() == 1) {
+		for (int y = 0; y < srcArray.rows; y++) {
+			for (int x = 0; x < srcArray.cols; x++) {
+					dst.at<uchar>(y, x) = cv::saturate_cast<uchar>((contrastValue * 0.01) * (srcArray.at<uchar>(y, x)) + brightValue);
+			}
+		}
+	}
+	else if (srcArray.channels() == 3) {
+		for (int y = 0; y < srcArray.rows; y++) {
+			for (int x = 0; x < srcArray.cols; x++) {
+				for (int i = 0; i < 3; i++) {
+					dst.at<cv::Vec3b>(y, x)[i] = cv::saturate_cast<uchar>((contrastValue * 0.01) * (srcArray.at<cv::Vec3b>(y, x)[i]) + brightValue);
+				}
 			}
 		}
 	}
